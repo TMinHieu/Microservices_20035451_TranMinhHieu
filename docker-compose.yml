@@ -12,6 +12,8 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   mongodb:
     image: mongo:5
@@ -20,6 +22,8 @@ services:
       - "27017:27017"
     volumes:
       - mongodata:/data/db
+    networks:
+      - app-network
 
   product-service:
     build: ./product-service
@@ -32,6 +36,8 @@ services:
       DB_NAME: productdb
     depends_on:
       - postgres
+    networks:
+      - app-network
 
   customer-service:
     build: ./customer-service
@@ -41,6 +47,8 @@ services:
       MONGO_URL: mongodb://mongo:27017/customers
     depends_on:
       - mongodb
+    networks:
+      - app-network
 
   order-service:
     build: ./order-service
@@ -55,7 +63,13 @@ services:
       - postgres
       - product-service
       - customer-service
+    networks:
+      - app-network
 
 volumes:
   pgdata:
   mongodata:
+
+networks:
+  app-network:
+    driver: bridge
