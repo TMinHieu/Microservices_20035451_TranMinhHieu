@@ -1,0 +1,61 @@
+version: '3.8'
+services:
+
+  postgres:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: productdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo:5
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+
+  product-service:
+    build: ./product-service
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: postgres
+      DB_USER: user
+      DB_PASS: pass
+      DB_NAME: productdb
+    depends_on:
+      - postgres
+
+  customer-service:
+    build: ./customer-service
+    ports:
+      - "3002:3002"
+    environment:
+      MONGO_URL: mongodb://mongo:27017/customers
+    depends_on:
+      - mongodb
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3003:3003"
+    environment:
+      DB_HOST: postgres
+      DB_USER: user
+      DB_PASS: pass
+      DB_NAME: orderdb
+    depends_on:
+      - postgres
+      - product-service
+      - customer-service
+
+volumes:
+  pgdata:
+  mongodata:
